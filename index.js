@@ -4,19 +4,15 @@ const books = require("./bookList.json");
 // that together define the "shape" of queries that are executed against
 // your data.
 const typeDefs = gql`
-  # Comments in GraphQL strings (such as this one) start with the hash (#) symbol.
-
-  # This "Book" type defines the queryable fields for every book in our data source.
   type Book {
+    id: ID
     title: String
     author: String
   }
 
-  # The "Query" type is special: it lists all of the available queries that
-  # clients can execute, along with the return type for each. In this
-  # case, the "books" query returns an array of zero or more Books (defined above).
   type Query {
-    books(offset: Int, limit: Int): [Book]
+    books: [Book]
+    book(id: ID, title: String, author: String): Book
   }
 `;
 
@@ -24,6 +20,13 @@ const typeDefs = gql`
 // schema. This resolver retrieves books from the "books" array above.
 const resolvers = {
   Query: {
+    book: (parent, args, context, info) => {
+      return (
+        books.find((book) => book.id === args.id) ||
+        books.find((book) => book.title === args.title) ||
+        books.find((book) => book.author === args.author)
+      );
+    },
     books: () => books
   }
 };
