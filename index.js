@@ -1,8 +1,6 @@
 const { ApolloServer, gql } = require("apollo-server");
 const books = require("./bookList.json");
-// A schema is a collection of type definitions (hence "typeDefs")
-// that together define the "shape" of queries that are executed against
-// your data.
+
 const typeDefs = gql`
   type Book {
     id: ID
@@ -11,23 +9,26 @@ const typeDefs = gql`
   }
 
   type Query {
-    books: [Book]
+    books(limit: Int, offset: Int): [Book]
     book(id: ID, title: String, author: String): Book
   }
 `;
 
-// Resolvers define the technique for fetching the types defined in the
-// schema. This resolver retrieves books from the "books" array above.
 const resolvers = {
   Query: {
-    book: (parent, args, context, info) => {
+    book: (_, args) => {
       return (
         books.find((book) => book.id === args.id) ||
         books.find((book) => book.title === args.title) ||
         books.find((book) => book.author === args.author)
       );
     },
-    books: () => books
+    books: (_, variables) => {
+      const { limit = 10, offset = 0 } = variables;
+      return books
+        .slice(offset, offset + limit)
+        .map((book) => ({ ...book, __typename: "Book" }));
+    }
   }
 };
 
