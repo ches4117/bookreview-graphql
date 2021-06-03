@@ -9,25 +9,26 @@ const typeDefs = gql`
   }
 
   type Query {
-    books(limit: Int, offset: Int): [Book]
-    book(id: ID, title: String, author: String): Book
+    books(limit: Int, offset: Int, title: String): [Book]
+    searchBooks(limit: Int, offset: Int, title: String): [Book]
   }
 `;
 
 const resolvers = {
   Query: {
-    book: (_, args) => {
-      return (
-        books.find((book) => book.id === args.id) ||
-        books.find((book) => book.title === args.title) ||
-        books.find((book) => book.author === args.author)
-      );
-    },
-    books: (_, variables) => {
-      const { limit = 10, offset = 0 } = variables;
+    books: (_, args) => {
+      const { limit = 10, offset = 0 } = args;
       return books
         .slice(offset, offset + limit)
         .map((book) => ({ ...book, __typename: "Book" }));
+    },
+    searchBooks: (_, args) => {
+      return books.filter((book) => {
+        if (book.title.indexOf(args.title) >= 0) {
+          return true;
+        }
+        return false;
+      });
     }
   }
 };
